@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # Copy application code
-COPY src ./src/
+COPY app/chatbot_ui/src ./src/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
