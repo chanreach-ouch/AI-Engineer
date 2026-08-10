@@ -4,9 +4,9 @@ from typing import List
 
 from openai import OpenAI
 from groq import Groq
-from google import genai
-
 from api.core.config import config
+from api.api.endpoints import api_router
+from api.api.middleware import RequestIDMiddleware
 import logging
 
 logging.basicConfig(
@@ -16,6 +16,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Engineer API", description="API for running LLMs", version="0.1.0")
+
+app.add_middleware(RequestIDMiddleware)
+app.include_router(api_router)
 
 class Message(BaseModel):
     role: str
@@ -44,16 +47,9 @@ def run_llm(request: ChatRequest):
         client = OpenAI(api_key=config.OPENAI_API_KEY)
     elif provider == "Groq":
         client = Groq(api_key=config.GROQ_API_KEY)
-    else:
-        client = genai.Client(api_key=config.GOOGLE_API_KEY)
 
     try:
-        if provider == "Google":
-            response = client.models.generate_content(
-                model=model_name,
-                contents=[message["content"] for message in messages],
-            ).text
-        elif provider == "Groq":
+        if provider == "Groq":
             response = client.chat.completions.create(
                 model=model_name,
                 messages=messages,
