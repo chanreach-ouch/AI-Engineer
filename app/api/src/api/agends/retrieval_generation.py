@@ -95,26 +95,31 @@ Question:
     return prompt
 
 
+import time
+import groq
+
 @traceable(
     name="generate_answer",
     run_type="llm",
     metadata={"ls_provider": "groq", "ls_model_name": "llama-3.1-8b-instant"}
 )
 def generate_answer(prompt):
-    response = groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    
-    return response.choices[0].message.content
+    while True:
+        try:
+            response = groq_client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+        except groq.RateLimitError as e:
+            print(f"Groq Rate limit hit! Sleeping for 20 seconds...")
+            time.sleep(20)
 
 
 @traceable(
     name="rag_pipeline"
 )
-def rag_pipeline(question, top_k=5):
-
-    qdrant_client = QdrantClient(url="http://qdrant:6333")
+def rag_pipeline(question,qdrant_client, top_k=5):
 
     retrieved_context = retrieve_data(question, qdrant_client, top_k)
     preprocessed_context = process_context(retrieved_context)
@@ -123,10 +128,10 @@ def rag_pipeline(question, top_k=5):
 
 
     final_result = {
-        "answer": answer,
         "question": question,
-        "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
+        "answer": answer,
         "retrieved_contexts": retrieved_context["retrieved_contexts"],
+        "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
         "similarity_scores": retrieved_context["similarity_scores"],
         "retrieved_context_ratings": retrieved_context["retrieved_context_ratings"],
     }
