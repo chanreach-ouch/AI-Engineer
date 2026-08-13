@@ -104,6 +104,7 @@ The architecture consists of three main components: a Streamlit frontend, a Fast
      - `generate_answer()`: Triggers the final LLM response.
      - `rag_pipeline()`: Orchestrates the above functions into a single workflow.
    - **Usage:** This module is heavily decorated with `@traceable` from LangSmith to provide telemetry for each step of the RAG process.
+   - **Historical Context:** The core logic inside this module was originally developed and successfully prototyped in Jupyter Notebooks before being converted and modularized into this backend API.
 
 5. **`docker-compose.yml`**
    - **Purpose:** Local development and deployment orchestration.
